@@ -245,4 +245,8 @@ describe('sqlite', () => {
       expect(getParsedSql(sql)).to.be.equal(`INSERT OR ${keyword} INTO "test" (category) VALUES ('Infra, Layer1, DePIN')`)
     })
   })
+  it('should support LIKE with ESCAPE', () => {
+    const sql = `SELECT * FROM table_name WHERE column_name LIKE '%pattern%' ESCAPE '\'`
+    expect(getParsedSql(sql)).to.be.equal(`SELECT * FROM "table_name" WHERE "column_name" LIKE '%pattern%' ESCAPE '\'`)
+  })
 })
