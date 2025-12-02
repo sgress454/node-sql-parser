@@ -97,5 +97,8 @@
   "dependencies": {
     "@types/pegjs": "^0.10.0",
     "big-integer": "^1.6.48"
+  },
+  "publishConfig": {
+    "name": "@sgress454/node-sql-parser"
   }
 }
