@@ -316,4 +316,31 @@ describe('sqlite', () => {
     const sql = `SELECT * FROM foo as left where left.bar=1`
     expect(getParsedSql(sql)).to.be.equal('SELECT * FROM "foo" AS "left" WHERE "left"."bar" = 1')
   })
+
+  describe('joins', () => {
+    const joinTypes = {
+      'LEFT JOIN': 'LEFT JOIN',
+      'LEFT OUTER JOIN': 'LEFT JOIN',
+      'RIGHT JOIN': 'RIGHT JOIN',
+      'RIGHT OUTER JOIN': 'RIGHT JOIN',
+      'FULL JOIN': 'FULL JOIN',
+      'FULL OUTER JOIN': 'FULL JOIN',
+      'INNER JOIN': 'INNER JOIN',
+      'NATURAL LEFT JOIN': 'NATURAL LEFT JOIN',
+      'NATURAL RIGHT JOIN': 'NATURAL RIGHT JOIN',
+      'NATURAL FULL JOIN': 'NATURAL FULL JOIN',
+      'NATURAL INNER JOIN': 'NATURAL INNER JOIN',
+      'NATURAL LEFT OUTER JOIN': 'NATURAL LEFT JOIN',
+      'NATURAL RIGHT OUTER JOIN': 'NATURAL RIGHT JOIN',
+      'NATURAL FULL OUTER JOIN': 'NATURAL FULL JOIN',
+      'CROSS JOIN': 'CROSS JOIN',
+      'JOIN': 'INNER JOIN',
+    }
+    Object.keys(joinTypes).forEach(joinType => {
+      it(`should support ${joinType}`, () => {
+        const sql = `SELECT * FROM table1 ${joinType} table2 ON table1.id = table2.t1_id`
+        expect(getParsedSql(sql)).to.be.equal(`SELECT * FROM "table1" ${joinTypes[joinType]} "table2" ON "table1"."id" = "table2"."t1_id"`)
+      })
+    })
+  })
 })

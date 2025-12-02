@@ -61,74 +61,74 @@
   };
 
   const invalidImplicitAliasMap = {
-    'INDEXED': true,
-    'INDEX': true,
-    'ESCAPE': true,
-    'CHECK': true,
-    'FOREIGN': true,
-    'REGEXP': true,
     'ADD': true,
-    'AS': true,
-    'SELECT': true,
-    'TABLE': true,
-    'LEFT': true,
-    'THEN': true,
-    'DEFERRABLE': true,
-    'ELSE': true,
-    'DELETE': true,
-    'OR': true,
-    'INTERSECT': true,
-    'NOT': true,
-    'NULL': true,
-    'LIKE': true,
-    'EXCEPT': true,
-    'TRANSACTION': true,
-    'ON': true,
-    'NATURAL': true,
+    'ALL': true,
     'ALTER': true,
-    'EXISTS': true,
-    'CONSTRAINT': true,
-    'INTO': true,
-    'SET': true,
-    'HAVING': true,
-    'GLOB': true,
-    'INNER': true,
-    'REFERENCES': true,
-    'UNIQUE': true,
-    'OUTER': true,
+    'AND': true,
+    'AS': true,
+    'AUTOINCREMENT': true,
     'BETWEEN': true,
-    'NOTHING': true,
-    'GROUP': true,
-    'DEFAULT': true,
     'CASE': true,
+    'CHECK': true,
     'COLLATE': true,
+    'COMMIT': true,
+    'CONSTRAINT': true,
     'CREATE': true,
-    'JOIN': true,
-    'INSERT': true,
-    'MATCH': true,
+    'CROSS': true,
+    'DEFAULT': true,
+    'DEFERRABLE': true,
+    'DELETE': true,
     'DISTINCT': true,
+    'DROP': true,
+    'ELSE': true,
+    'ESCAPE': true,
+    'EXCEPT': true,
+    'EXISTS': true,
+    'FOREIGN': true,
+    'FROM': true,
+    'FULL': true,
+    'GLOB': true,
+    'GROUP': true,
+    'HAVING': true,
+    'IN': true,
+    'INDEX': true,
+    'INDEXED': true,
+    'INNER': true,
+    'INSERT': true,
+    'INTERSECT': true,
+    'INTO': true,
     'IS': true,
+    'JOIN': true,
+    'LEFT': true,
+    'LIKE': true,
+    'LIMIT': true,
+    'MATCH': true,
+    'NATURAL': true,
+    'NOT': true,
+    'NOTHING': true,
+    'NULL': true,
+    'ON': true,
+    'OR': true,
+    'ORDER': true,
+    'OUTER': true,
+    'PRIMARY': true,
+    'REFERENCES': true,
+    'REGEXP': true,
+    'RETURNING': true,
+    'RIGHT': true,
+    'SELECT': true,
+    'SET': true,
+    'TABLE': true,
+    'THEN': true,
+    'TO': true,
+    'TRANSACTION': true,
+    'UNION': true,
+    'UNIQUE': true,
     'UPDATE': true,
+    'USING': true,
     'VALUES': true,
     'WHEN': true,
     'WHERE': true,
-    'AND': true,
-    'DROP': true,
-    'AUTOINCREMENT': true,
-    'TO': true,
-    'IN': true,
-    'COMMIT': true,
-    'CROSS': true,
-    'FROM': true,
-    'FULL': true,
-    'LIMIT': true,
-    'ORDER': true,
-    'RETURNING': true,
-    'RIGHT': true,
-    'UNION': true,
-    'USING': true,
-    'ALL': true,
-    'PRIMARY': true
   }
 
   function getLocationObject() {
@@ -1681,8 +1681,11 @@ table_base
     }
 
 join_op
-  = KW_LEFT __ KW_OUTER? __ KW_JOIN { return 'LEFT JOIN'; }
-  / (KW_INNER __)? KW_JOIN { return 'INNER JOIN'; }
+  = natural:(KW_NATURAL __)? KW_LEFT __ KW_OUTER? __ KW_JOIN { return natural ? 'NATURAL LEFT JOIN' : 'LEFT JOIN'; }
+  / natural:(KW_NATURAL __)? KW_RIGHT __ KW_OUTER? __ KW_JOIN { return natural ? 'NATURAL RIGHT JOIN' : 'RIGHT JOIN'; }
+  / natural:(KW_NATURAL __)? KW_FULL __ KW_OUTER? __ KW_JOIN { return natural ? 'NATURAL FULL JOIN' : 'FULL JOIN'; }
+  / natural:(KW_NATURAL __)? (KW_INNER __)? KW_JOIN { return natural ? 'NATURAL INNER JOIN' : 'INNER JOIN'; }
+  / KW_CROSS __ KW_JOIN { return 'CROSS JOIN'; }
 
 table_name
   = dt:ident tail:(__ DOT __ ident)? {
@@ -2817,7 +2820,11 @@ KW_COLLATE  = "COLLATE"i    !ident_start { return 'COLLATE'; }
 
 KW_ON       = "ON"i       !ident_start
 KW_LEFT     = "LEFT"i     !ident_start
+KW_RIGHT    = "RIGHT"i     !ident_start
+KW_CROSS    = "CROSS"i      !ident_start
+KW_FULL     = "FULL"i     !ident_start
 KW_INNER    = "INNER"i    !ident_start
+KW_NATURAL  = "NATURAL"i     !ident_start
 KW_JOIN     = "JOIN"i     !ident_start
 KW_OUTER    = "OUTER"i    !ident_start
 KW_OVER     = "OVER"i     !ident_start
