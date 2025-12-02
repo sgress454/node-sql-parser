@@ -300,4 +300,20 @@ describe('sqlite', () => {
         expect(getParsedSql(sql)).to.be.equal(sql)
       });
   });
+  it('should allow column names that are keywords, but not reserved words, without quotes', () => {
+    const sql = `SELECT partition FROM some_table`
+    expect(getParsedSql(sql)).to.be.equal('SELECT "partition" FROM "some_table"')
+  })
+  it('should allow column names that are reserved words with quotes', () => {
+    const sql = `SELECT "from" FROM some_table`
+    expect(getParsedSql(sql)).to.be.equal('SELECT "from" FROM "some_table"')
+  })
+  it('should allow table names that are keywords, but not reserved words, without quotes', () => {
+    const sql = `CREATE TABLE partition (foo integer)`
+    expect(getParsedSql(sql)).to.be.equal('CREATE TABLE "partition" ("foo" INTEGER)')
+  })
+  it('should allow explict aliases that would be invalid as implicit aliases', () => {
+    const sql = `SELECT * FROM foo as left where left.bar=1`
+    expect(getParsedSql(sql)).to.be.equal('SELECT * FROM "foo" AS "left" WHERE "left"."bar" = 1')
+  })
 })
