@@ -1,102 +1,135 @@
 {
   const reservedMap = {
-    'ALTER': true,
-    'ALL': true,
     'ADD': true,
+    'ALL': true,
+    'ALTER': true,
     'AND': true,
     'AS': true,
-    'ASC': true,
-
+    'AUTOINCREMENT': true,
     'BETWEEN': true,
-    'BY': true,
-
-    'CALL': true,
     'CASE': true,
+    'CHECK': true,
+    'COLLATE': true,
+    'COMMIT': true,
+    'CONSTRAINT': true,
     'CREATE': true,
-    'CONTAINS': true,
-    'COUNT': true,
-    'CURRENT_DATE': true,
-    'CURRENT_TIME': true,
-    'CURRENT_TIMESTAMP': true,
-    'CURRENT_USER': true,
-
+    'DEFAULT': true,
+    'DEFERRABLE': true,
     'DELETE': true,
-    'DESC': true,
     'DISTINCT': true,
     'DROP': true,
-
     'ELSE': true,
-    'END': true,
+    'ESCAPE': true,
+    'EXCEPT': true,
     'EXISTS': true,
-    'EXPLAIN': true,
-
-    'FALSE': true,
+    'FOREIGN': true,
     'FROM': true,
-    'FULL': true,
-
-    'GENERATED': true,
     'GROUP': true,
-
     'HAVING': true,
-
     'IN': true,
-    'INNER': true,
+    'INDEX': true,
     'INSERT': true,
+    'INTERSECT': true,
     'INTO': true,
     'IS': true,
-
+    'ISNULL': true,
     'JOIN': true,
-    // 'JSON': true,
+    'LIMIT': true,
+    'NOT': true,
+    'NOTHING': true,
+    'NOTNULL': true,
+    'NULL': true,
+    'ON': true,
+    'OR': true,
+    'ORDER': true,
+    'PRIMARY': true,
+    'REFERENCES': true,
+    'RETURNING': true,
+    'SELECT': true,
+    'SET': true,
+    'TABLE': true,
+    'THEN': true,
+    'TO': true,
+    'TRANSACTION': true,
+    'UNION': true,
+    'UNIQUE': true,
+    'UPDATE': true,
+    'USING': true,
+    'VALUES': true,
+    'WHEN': true,
+    'WHERE': true,
+  };
 
-    // 'KEY': true,
-
+  const invalidImplicitAliasMap = {
+    'ADD': true,
+    'ALL': true,
+    'ALTER': true,
+    'AND': true,
+    'AS': true,
+    'AUTOINCREMENT': true,
+    'BETWEEN': true,
+    'CASE': true,
+    'CHECK': true,
+    'COLLATE': true,
+    'COMMIT': true,
+    'CONSTRAINT': true,
+    'CREATE': true,
+    'CROSS': true,
+    'DEFAULT': true,
+    'DEFERRABLE': true,
+    'DELETE': true,
+    'DISTINCT': true,
+    'DROP': true,
+    'ELSE': true,
+    'ESCAPE': true,
+    'EXCEPT': true,
+    'EXISTS': true,
+    'FOREIGN': true,
+    'FROM': true,
+    'FULL': true,
+    'GLOB': true,
+    'GROUP': true,
+    'HAVING': true,
+    'IN': true,
+    'INDEX': true,
+    'INDEXED': true,
+    'INNER': true,
+    'INSERT': true,
+    'INTERSECT': true,
+    'INTO': true,
+    'IS': true,
+    'JOIN': true,
     'LEFT': true,
     'LIKE': true,
     'LIMIT': true,
-    'LOW_PRIORITY': true, // for lock table
-
+    'MATCH': true,
+    'NATURAL': true,
     'NOT': true,
+    'NOTHING': true,
     'NULL': true,
-
     'ON': true,
     'OR': true,
     'ORDER': true,
     'OUTER': true,
-
-    'RECURSIVE': true,
-    'RENAME': true,
-    'READ': true, // for lock table
+    'PRIMARY': true,
+    'REFERENCES': true,
+    'REGEXP': true,
+    'RETURNING': true,
     'RIGHT': true,
-
     'SELECT': true,
-    'SESSION_USER': true,
     'SET': true,
-    'SHOW': true,
-    'SYSTEM_USER': true,
-
     'TABLE': true,
     'THEN': true,
-    'TRUE': true,
-    'TRUNCATE': true,
-    // 'TYPE': true,   // reserved (MySQL)
-
+    'TO': true,
+    'TRANSACTION': true,
     'UNION': true,
+    'UNIQUE': true,
     'UPDATE': true,
     'USING': true,
-
     'VALUES': true,
-
-    'WITH': true,
     'WHEN': true,
     'WHERE': true,
-    'WRITE': true, // for lock table
-
-    'GLOBAL': true,
-    'SESSION': true,
-    'LOCAL': true,
-    'PERSIST': true,
-    'PERSIST_ONLY': true,
-  };
+  }
 
   function getLocationObject() {
     return options.includeLocations ? {loc: location()} : {}
@@ -777,15 +810,15 @@ use_stmt
 alter_table_stmt
   = KW_ALTER  __
     KW_TABLE __
-    t:table_ref_list __
+    t:table_name __
     e:alter_action_list {
-      if (t && t.length > 0) t.forEach(table => tableList.add(`alter::${table.db}::${table.table}`));
+      tableList.add(`alter::${t.db}::${t.table}`)
       return {
         tableList: Array.from(tableList),
         columnList: columnListTableAlias(columnList),
         ast: {
           type: 'alter',
-          table: t,
+          table: [t],
           expr: e
         }
       };
@@ -1514,8 +1547,8 @@ column_list_item
     }
 
 alias_clause
-  = KW_AS ___ i:alias_ident { return i; }
-  / KW_AS? __ i:ident { return i; }
+  = KW_AS __ i:alias_ident_explicit { return i; }
+  / i:alias_ident_implicit { return i; }
 
 from_clause
   = KW_FROM __ l:table_ref_list { return l; }
@@ -1648,8 +1681,11 @@ table_base
     }
 
 join_op
-  = KW_LEFT __ KW_OUTER? __ KW_JOIN { return 'LEFT JOIN'; }
-  / (KW_INNER __)? KW_JOIN { return 'INNER JOIN'; }
+  = natural:(KW_NATURAL __)? KW_LEFT __ KW_OUTER? __ KW_JOIN { return natural ? 'NATURAL LEFT JOIN' : 'LEFT JOIN'; }
+  / natural:(KW_NATURAL __)? KW_RIGHT __ KW_OUTER? __ KW_JOIN { return natural ? 'NATURAL RIGHT JOIN' : 'RIGHT JOIN'; }
+  / natural:(KW_NATURAL __)? KW_FULL __ KW_OUTER? __ KW_JOIN { return natural ? 'NATURAL FULL JOIN' : 'FULL JOIN'; }
+  / natural:(KW_NATURAL __)? (KW_INNER __)? KW_JOIN { return natural ? 'NATURAL INNER JOIN' : 'INNER JOIN'; }
+  / KW_CROSS __ KW_JOIN { return 'CROSS JOIN'; }
 
 table_name
   = dt:ident tail:(__ DOT __ ident)? {
@@ -2332,16 +2368,28 @@ ident
       return name;
     }
 
-alias_ident
+alias_ident_explicit
   = name:ident_name !{
       if (reservedMap[name.toUpperCase()] === true) throw new Error("Error: "+ JSON.stringify(name)+" is a reserved word, can not as alias clause");
       return false
     } {
       return name;
     }
-  / name:quoted_ident {
+  / name:quoted_ident { return name; }
+
+alias_ident_implicit
+  = name:ident_name !{
+      // reject reserved words
+      if (reservedMap[name.toUpperCase()] === true) return true;
+
+      // reject invalid implicit alias words
+      if (invalidImplicitAliasMap[name.toUpperCase()] === true) return true;
+
+      return false;
+    } {
       return name;
     }
+  / name:quoted_ident { return name; }
 
 quoted_ident_type
   = double_quoted_ident / single_quoted_ident / backticks_quoted_ident
@@ -2772,7 +2820,11 @@ KW_COLLATE  = "COLLATE"i    !ident_start { return 'COLLATE'; }
 
 KW_ON       = "ON"i       !ident_start
 KW_LEFT     = "LEFT"i     !ident_start
+KW_RIGHT    = "RIGHT"i     !ident_start
+KW_CROSS    = "CROSS"i      !ident_start
+KW_FULL     = "FULL"i     !ident_start
 KW_INNER    = "INNER"i    !ident_start
+KW_NATURAL  = "NATURAL"i     !ident_start
 KW_JOIN     = "JOIN"i     !ident_start
 KW_OUTER    = "OUTER"i    !ident_start
 KW_OVER     = "OVER"i     !ident_start
