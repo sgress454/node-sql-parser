@@ -33,8 +33,14 @@
   ],
   "author": "taozhi8833998 <taozhi8833998@163.com>",
   "contributors": [
-    "taozhi8833998 <taozhi8833998@163.com>",
-    "Scott Gress <scott@fleetdm.com>"
+    {
+      "name": "taozhi8833998",
+      "email": "taozhi8833998@163.com"
+    },
+    {
+      "name": "Scott Gress",
+      "email": "scott@fleetdm.com"
+    }
   ],
   "files": [
     "ast/",
@@ -101,5 +107,9 @@
   "dependencies": {
     "@types/pegjs": "^0.10.0",
     "big-integer": "^1.6.48"
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "test"
   }
 }
