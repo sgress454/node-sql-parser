@@ -1416,11 +1416,21 @@ with_clause
     }
 
 cte_definition
-  = name:(literal_string / ident_name / table_name) __ columns:cte_column_definition? __ KW_AS __ LPAREN __ stmt:union_stmt __ RPAREN {
+  = name:(literal_string / ident_name / table_name) __ columns:cte_column_definition? __ KW_AS __ LPAREN __ stmt:cte_body __ RPAREN {
     if (typeof name === 'string') name = { type: 'default', value: name }
     if (name.table) name = { type: 'default', value: name.table }
     return { name, stmt, columns };
   }
+
+cte_body
+  = union_stmt
+  / v:value_clause {
+      return {
+        tableList: Array.from(tableList),
+        columnList: columnListTableAlias(columnList),
+        ast: v
+      }
+    }
 
 cte_column_definition
   = LPAREN __ l:column_ref_index __ RPAREN {
@@ -2227,7 +2237,7 @@ in_op_right
   = op:in_op __ LPAREN  __ l:expr_list __ RPAREN {
       return { op: op, right: l };
     }
-  / op:in_op __ e:(var_decl / literal_string / func_call) {
+  / op:in_op __ e:(var_decl / literal_string / column_ref / func_call) {
       return { op: op, right: e };
     }
 

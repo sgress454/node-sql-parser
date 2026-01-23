@@ -304,4 +304,26 @@ describe('sqlite', () => {
         expect(getParsedSql(sql)).to.be.equal(sql)
       });
   });
+  it('should support CTE with VALUES', () => {
+    const sql = `WITH path_suffixes(path) AS (
+  VALUES
+    ('foo'),
+    ('bar'),
+    ('baz')
+  ) SELECT * FROM path_suffixes;`
+    expect(getParsedSql(sql)).to.be.equal(`WITH "path_suffixes"("path") AS (('foo'), ('bar'), ('baz')) SELECT * FROM "path_suffixes"`)
+  })
+  it('should support UNION in CTE', () => {
+    const sql = `WITH combined_data AS (
+  SELECT id, name FROM table1
+  UNION
+  SELECT id, name FROM table2
+)
+SELECT * FROM combined_data;`
+    expect(getParsedSql(sql)).to.be.equal(`WITH "combined_data" AS (SELECT "id", "name" FROM "table1" UNION SELECT "id", "name" FROM "table2") SELECT * FROM "combined_data"`)
+  })
+  it('should support table names with IN clauses', () => {
+    const sql = `SELECT * FROM pets WHERE owner_name IN people;`
+    expect(getParsedSql(sql)).to.be.equal('SELECT * FROM "pets" WHERE "owner_name" IN "people"')
+  })
 })
