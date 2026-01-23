@@ -1,6 +1,6 @@
 {
   "name": "@sgress454/node-sql-parser",
-  "version": "5.4.0",
+  "version": "5.4.0-fork.1",
   "description": "fork of node-sql-parser with bug-fixes for sqlite",
   "main": "index.js",
   "types": "types.d.ts",
