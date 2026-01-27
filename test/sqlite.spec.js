@@ -312,5 +312,9 @@ describe('sqlite', () => {
 )
 SELECT x FROM cnt;`
     expect(getParsedSql(sql)).to.be.equal(`WITH RECURSIVE "cnt"("x") AS ((1)) SELECT "x" FROM "cnt"`)
-  })
+  });
+  it('should support table names with IN clauses', () => {
+    const sql = `SELECT * FROM pets WHERE owner_name IN people;`
+    expect(getParsedSql(sql)).to.be.equal('SELECT * FROM "pets" WHERE "owner_name" IN "people"')
+  });
 })
