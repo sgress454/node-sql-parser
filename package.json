@@ -1,6 +1,6 @@
 {
   "name": "@sgress454/node-sql-parser",
-  "version": "5.4.0",
+  "version": "5.4.0-fork.2",
   "description": "fork of node-sql-parser with bug-fixes for sqlite",
   "main": "index.js",
   "types": "types.d.ts",
@@ -13,7 +13,7 @@
     "coverLocal": "cross-env NODE_ENV=coverage nyc --reporter=lcov --reporter=text npm run test",
     "cover:run": "cross-env NODE_ENV=coverage nyc --reporter=text-lcov npm run test",
     "cover": "npm run cover:run && nyc report --reporter=text-lcov | coveralls",
-    "release": "npm run build && npm publish output/prod"
+    "release": "npm run build && npm publish ./output/prod --access=public"
   },
   "repository": {
     "type": "git",
