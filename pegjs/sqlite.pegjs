@@ -2448,13 +2448,16 @@ on_update_current_timestamp
   }
 
 over_partition
-  = KW_OVER __ LPAREN __ KW_PARTITION __ KW_BY __ bc:column_clause __ l:order_by_clause? __ RPAREN {
+  = KW_OVER __ LPAREN __ p:partition_by_clause? __ l:order_by_clause? __ RPAREN {
     return {
-      partitionby: bc,
+      partitionby: p,
       orderby: l
     }
   }
   / on_update_current_timestamp
+
+partition_by_clause
+  = KW_PARTITION __ KW_BY __ bc:column_clause { return bc; }
 aggr_fun_count
   = name:(KW_COUNT / KW_GROUP_CONCAT) __ LPAREN __ arg:count_arg __ RPAREN __ bc:over_partition? {
       return {

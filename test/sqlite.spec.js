@@ -183,6 +183,25 @@ describe('sqlite', () => {
     expect(getParsedSql(sql)).to.be.equal(`SELECT "b"."brand_name", "p"."prompt_text", "m"."model_name", "mr"."brand_visibility_score", AVG("mr"."brand_visibility_score") OVER (PARTITION BY "b"."brand_name" ) AS "avg_brand_visibility", AVG("mr"."brand_visibility_score") OVER (PARTITION BY "m"."model_name" ) AS "avg_model_visibility", AVG("mr"."brand_visibility_score") OVER (PARTITION BY "p"."prompt_id" ) AS "avg_prompt_visibility" FROM "model_responses" AS "mr" INNER JOIN "experiment_runs" AS "er" ON "mr"."run_id" = "er"."run_id" INNER JOIN "brands" AS "b" ON "er"."brand_id" = "b"."brand_id" INNER JOIN "models" AS "m" ON "mr"."model_id" = "m"."model_id" INNER JOIN "prompts" AS "p" ON "mr"."prompt_id" = "p"."prompt_id" WHERE "b"."brand_name" IN ('prod1', 'prod2', 'prod3') AND "mr"."error_occurred" = 0 ORDER BY "b"."brand_name" ASC, "mr"."brand_visibility_score" DESC, "m"."model_name" ASC, "p"."prompt_text" ASC LIMIT 100`)
   })
 
+  it('should support window function with empty OVER()', () => {
+    let sql = 'SELECT ROW_NUMBER() OVER () FROM t'
+    expect(getParsedSql(sql)).to.be.equal('SELECT ROW_NUMBER() OVER ( ) FROM "t"')
+    sql = 'SELECT id, SUM(amount) OVER () AS total FROM payments'
+    expect(getParsedSql(sql)).to.be.equal('SELECT "id", SUM("amount") OVER ( ) AS "total" FROM "payments"')
+  })
+
+  it('should support window function with ORDER BY only (no PARTITION BY)', () => {
+    let sql = 'SELECT ROW_NUMBER() OVER (ORDER BY id) FROM t'
+    expect(getParsedSql(sql)).to.be.equal('SELECT ROW_NUMBER() OVER ( ORDER BY "id" ASC) FROM "t"')
+    sql = 'SELECT SUM(x) OVER (ORDER BY a DESC, b ASC) FROM t'
+    expect(getParsedSql(sql)).to.be.equal('SELECT SUM("x") OVER ( ORDER BY "a" DESC, "b" ASC) FROM "t"')
+  })
+
+  it('should support window function with PARTITION BY and ORDER BY', () => {
+    const sql = 'SELECT SUM(x) OVER (PARTITION BY a, b ORDER BY c DESC, d ASC) FROM t'
+    expect(getParsedSql(sql)).to.be.equal('SELECT SUM("x") OVER (PARTITION BY "a", "b" ORDER BY "c" DESC, "d" ASC) FROM "t"')
+  })
+
   it('should support create or drop view', () => {
     let sql = 'create view v1 as select * from t1'
     expect(getParsedSql(sql)).to.be.equal('CREATE VIEW "v1" AS SELECT * FROM "t1"')
