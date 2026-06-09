@@ -299,8 +299,14 @@ set_op
     return s ? `union ${s.toLowerCase()}` : 'union'
   }
 
+select_core
+  = select_stmt
+  / v:value_clause {
+      return { type: 'values', values: v.values }
+    }
+
 union_stmt
-  = head:select_stmt tail:(__ set_op __ select_stmt)* __ ob: order_by_clause? __ l:limit_clause? {
+  = head:select_core tail:(__ set_op __ select_core)* __ ob: order_by_clause? __ l:limit_clause? {
       let cur = head
       for (let i = 0; i < tail.length; i++) {
         cur._next = tail[i][3]
@@ -1927,7 +1933,8 @@ insert_no_columns_stmt
     t:table_name  __
     p:insert_partition? __
     v:insert_value_clause __
-    odp: on_duplicate_update_stmt? {
+    odp: on_duplicate_update_stmt? __
+    r:returning_stmt? {
       if (t) {
         tableList.add(`insert::${t.db}::${t.table}`)
         columnList.add(`insert::${t.table}::(.*)`);
@@ -1945,6 +1952,7 @@ insert_no_columns_stmt
           partition: p,
           prefix,
           on_duplicate_update: odp,
+          returning: r,
         }
       };
     }
@@ -2261,7 +2269,7 @@ in_op_right
   = op:in_op __ LPAREN  __ l:expr_list __ RPAREN {
       return { op: op, right: l };
     }
-  / op:in_op __ e:(var_decl / literal_string / func_call) {
+  / op:in_op __ e:(var_decl / literal_string / column_ref / func_call) {
       return { op: op, right: e };
     }
 
@@ -2488,13 +2496,16 @@ on_update_current_timestamp
   }
 
 over_partition
-  = KW_OVER __ LPAREN __ KW_PARTITION __ KW_BY __ bc:column_clause __ l:order_by_clause? __ RPAREN {
+  = KW_OVER __ LPAREN __ p:partition_by_clause? __ l:order_by_clause? __ RPAREN {
     return {
-      partitionby: bc,
+      partitionby: p,
       orderby: l
     }
   }
   / on_update_current_timestamp
+
+partition_by_clause
+  = KW_PARTITION __ KW_BY __ bc:column_clause { return bc; }
 aggr_fun_count
   = name:(KW_COUNT / KW_GROUP_CONCAT) __ LPAREN __ arg:count_arg __ RPAREN __ bc:over_partition? {
       return {

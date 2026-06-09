@@ -1943,6 +1943,23 @@ describe('Postgres', () => {
         'ALTER TABLE "configuration" ADD CONSTRAINT "configuration_pk" PRIMARY KEY ("something", "something_else", "something_something_else")',
       ]
     },
+    {
+      title: 'alter replica identity',
+      sql: [
+        'ALTER TABLE "table_name" REPLICA IDENTITY FULL;',
+        'ALTER TABLE "table_name" REPLICA IDENTITY FULL',
+      ]
+    },
+    {
+      title: 'tsvector data type',
+      sql: [
+        `CREATE TABLE test_table (
+            id int not null,
+            vector tsvector
+        );`,
+        'CREATE TABLE "test_table" (id INT NOT NULL, vector TSVECTOR)'
+      ]
+    },
   ]
   function neatlyNestTestedSQL(sqlList){
     sqlList.forEach(sqlInfo => {

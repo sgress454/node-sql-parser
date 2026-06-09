@@ -13,10 +13,8 @@ function overToSQL(over) {
     if (parentheses) onUpdate = `${onUpdate}(${args.join(', ')})`
     return onUpdate
   }
-  if (over.partitionby) {
-    return ['OVER', `(${orderOrPartitionByToSQL(over.partitionby, 'partition by')}`, `${orderOrPartitionByToSQL(over.orderby, 'order by')})`].filter(hasVal).join(' ')
-  }
-  throw new Error('unknown over type')
+  if (type) throw new Error('unknown over type')
+  return ['OVER', `(${orderOrPartitionByToSQL(over.partitionby, 'partition by')}`, `${orderOrPartitionByToSQL(over.orderby, 'order by')})`].filter(hasVal).join(' ')
 }
 
 export {

@@ -1901,6 +1901,7 @@ alter_action
   / ALTER_COLUMN_DATA_TYPE
   / ALTER_COLUMN_DEFAULT
   / ALTER_COLUMN_NOT_NULL
+  / ALTER_REPLICA_IDENTITY
 
 ALTER_ADD_COLUMN
   = KW_ADD __
@@ -2159,6 +2160,25 @@ ALTER_COLUMN_NOT_NULL
         keyword: kc,
         resource: 'column',
         nullable: n,
+        type: 'alter',
+      }
+  }
+
+ALTER_REPLICA_IDENTITY
+  = 'REPLICA'i __ 'IDENTITY'i __ n:('DEFAULT'i / 'FULL'i / 'NOTHING'i) {
+    /* => {
+        action: 'replica';
+        keyword?: 'identity';
+        resource: 'replica_identity';
+        type: 'alter';
+        replica_identity: 'default' | 'full' | 'nothing';
+      }
+      */
+      return {
+        action: 'replica',
+        keyword: 'identity',
+        resource: 'replica_identity',
+        replica_identity: n,
         type: 'alter',
       }
   }
@@ -5345,15 +5365,13 @@ cast_data_type
   }
 
 cast_double_colon
-  = s:(KW_DOUBLE_COLON __ cast_data_type)+ __ alias:alias_clause? {
+  = s:(KW_DOUBLE_COLON __ cast_data_type)+ {
     /* => {
-        as?: alias_clause,
         symbol: '::' | 'as',
         target: cast_data_type[];
       }
       */
     return {
-      as: alias,
       symbol: '::',
       target: s.map(v => v[2]),
     }
@@ -5769,6 +5787,8 @@ KW_TEXT     = "TEXT"i     !ident_start { return 'TEXT'; }
 KW_MEDIUMTEXT = "MEDIUMTEXT"i  !ident_start { return 'MEDIUMTEXT'; }
 KW_LONGTEXT  = "LONGTEXT"i  !ident_start { return 'LONGTEXT'; }
 KW_MEDIUMINT = "MEDIUMINT"i !ident_start { return 'MEDIUMINT'; }
+KW_TSVECTOR = "TSVECTOR"i !ident_start { return 'TSVECTOR'; }
+KW_TSQUERY = "TSQUERY"i !ident_start { return 'TSQUERY'; }
 KW_BIGINT   = "BIGINT"i   !ident_start { return 'BIGINT'; }
 KW_ENUM     = "ENUM"i   !ident_start { return 'ENUM'; }
 KW_FLOAT   = "FLOAT"i   !ident_start { return 'FLOAT'; }
@@ -6291,6 +6311,7 @@ text_type
     /* =>  data_type */
     return { dataType: `${t}${s ? '[]' : ''}` }
   }
+  / t:(KW_TSVECTOR / KW_TSQUERY) {/* =>  data_type */  return { dataType: t }; }
 
 uuid_type
   = t:KW_UUID {/* =>  data_type */  return { dataType: t }}

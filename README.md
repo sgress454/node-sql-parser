@@ -1,3 +1,14 @@
+## ⚠️ Fork Notice
+
+This package is a fork of https://github.com/taozhi8833998/node-sql-parser.
+
+Original author: taozhi
+License: Apache 2.0
+
+This fork exists to patch issues with the SQLite implementation while they're working their way to the upstream.
+
+As updates are made, this package will be published using versions like `5.4.0-fork.0`, `5.4.0-fork.1`, `5.4.1-fork.0` etc. to indicate the tag of the upstream they were forked from.
+
 # Nodejs SQL Parser
 
 [![Build Status](https://travis-ci.org/taozhi8833998/node-sql-parser.svg?branch=master)](https://travis-ci.org/taozhi8833998/node-sql-parser)
